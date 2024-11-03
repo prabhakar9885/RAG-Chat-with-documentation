@@ -11,6 +11,8 @@ python-dotenv = "*"
 langchain-community = "*"
 beautifulsoup4 = "*"
 langchain-ollama = "*"
+streamlit = "*"
+streamlit-chat = "*"
 
 [dev-packages]
 
