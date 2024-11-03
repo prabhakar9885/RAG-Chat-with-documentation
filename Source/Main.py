@@ -2,7 +2,7 @@ import streamlit as stl
 from dotenv import load_dotenv
 from streamlit_chat import message
 
-from Source.retriever import get_results_from_rag
+from Source.retriever_with_history import get_results_from_rag
 
 load_dotenv()
 
@@ -15,6 +15,9 @@ if "historical_prompts" not in stl.session_state:
 if "historical_responses" not in stl.session_state:
     stl.session_state["historical_responses"] = []
 
+if "chat_history" not in stl.session_state:
+    stl.session_state["chat_history"] = []
+
 
 def get_formated_sources(sources: set[str]) -> str:
     sources = list(sources)
@@ -26,12 +29,14 @@ def get_formated_sources(sources: set[str]) -> str:
 
 if prompt:
     with stl.spinner(text="Generating the response..."):
-        response = get_results_from_rag(query=prompt)
+        response = get_results_from_rag(query=prompt, chat_history=stl.session_state["chat_history"])
         sources = set([res.metadata["source"] for res in response["source_documents"]])
         formated_response = f"{response['result']} \n\nsources:\n{get_formated_sources(sources)}"
 
         stl.session_state["historical_prompts"].append(prompt)
         stl.session_state["historical_responses"].append(formated_response)
+        stl.session_state["chat_history"].append(("human", prompt))
+        stl.session_state["chat_history"].append(("ai", response['result']))
 
 if stl.session_state["historical_responses"]:
     for (query, response) in zip(stl.session_state["historical_prompts"], stl.session_state["historical_responses"]):
